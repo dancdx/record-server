@@ -1,0 +1,10 @@
+{
+  "extends": "eslint-config-egg",
+  "rules": {
+    "quotes": ["error", "single"],
+    "semi": ["warn", "never"],
+    "strict": "off",
+    "comma-dangle": "off",
+    "space-before-function-paren": "off"
+  }
+}
