@@ -29,15 +29,22 @@ class OrderController extends BaseController {
   // 更新
   async update () {
     const params = this.ctx.request.body
-    const info = await this.service.goods.update(params)
+    const info = await this.service.order.update(params)
     this.success(info)
   }
 
   // 删除
   async remove () {
     const { id } = this.ctx.query
-    await this.service.goods.remove(id)
-    this.success(null)
+    await this.service.order.remove(id)
+    this.success()
+  }
+
+  // 审核
+  async check () {
+    const { id, driver } = this.ctx.query
+    await this.service.order.check(id, driver)
+    this.success()
   }
 
 }

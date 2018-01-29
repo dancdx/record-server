@@ -45,12 +45,13 @@ class CategoryService extends Service {
     }
   }
 
-  async update (id) {
+  async update (id, name) {
     if (!id) this.ctx.throw(200, '请选择一个分类')
     try {
-      const info = this.ctx.model.Category.findOneAndUpdate({ _id: id }, '_id name', { new: true })
+      const info = this.ctx.model.Category.findOneAndUpdate(
+        { _id: id }, { name }, { new: true })
       if (!info) this.ctx.throw(200, '无效分类')
-      return info
+      return { name, id }
     } catch (e) {
       this.ctx.throw(200, '修改分类失败')
     }
@@ -61,7 +62,7 @@ class CategoryService extends Service {
     try {
       const info = this.ctx.model.Category.findById(id)
       if (!info) this.ctx.throw(200, '无效分类')
-      info.remove()
+      await info.remove()
       return 'success'
     } catch (e) {
       this.ctx.throw(200, '删除分类失败')

@@ -5,6 +5,10 @@ class BaseService extends Service {
     super(app)
     this.app = app
   }
+
+  get user () {
+    return this.ctx.session.user
+  }
 }
 
 module.exports = BaseService

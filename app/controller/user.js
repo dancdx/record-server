@@ -5,8 +5,10 @@ const ms = require('ms')
 
 class UserController extends BaseController {
 
+  // 获取下级用户列表
   async index() {
-    this.ctx.body = await this.ctx.model.User.find({})
+    const userList = await this.service.user.list()
+    this.success(userList)
   }
 
   async login() {
@@ -21,7 +23,7 @@ class UserController extends BaseController {
   async add() {
     const params = this.ctx.request.body
     const userInfo = await this.service.user.add(params)
-    this.ctx.session.user = userInfo
+    // this.ctx.session.user = userInfo
     this.success(userInfo)
   }
 }

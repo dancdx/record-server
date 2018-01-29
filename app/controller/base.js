@@ -12,7 +12,7 @@ class BaseController extends Controller {
     return this.ctx.session.user && this.ctx.session.user.id
   }
 
-  success(data) {
+  success(data = 'success') {
     this.ctx.body = {
       code: 0,
       data,
