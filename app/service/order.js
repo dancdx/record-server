@@ -14,7 +14,7 @@ class OrderService extends Service {
         let curItem = { num: item.num, userId: this.ctx.session.user.id }
         const priceType = 'tprice' // 角色价格类型，后续要处理
         // 查商品表，获取商品信息
-        const curGoodsModel = await this.ctx.model.Goods.findById(item.id, 'skuId name image desc ' + priceType)
+        const curGoodsModel = await this.ctx.model.Goods.findById(item.id, 'skuId zprice tprice apply name image desc ' + priceType)
         const curGoodsInfo = curGoodsModel.toObject()
         curGoodsInfo.price = curGoodsInfo[priceType]
         curGoodsInfo.total = curGoodsInfo.price * item.num
@@ -76,6 +76,8 @@ class OrderService extends Service {
 
   // 导出excel
   async download (params) {
+    // 公司才有权限导出订单
+    if (this.user.role > 1) this.ctx.throw(200, '无权操作')
     const { status, startTime, endTime } = params
     const condition = {}
     if (status) condition.status = status
@@ -87,17 +89,22 @@ class OrderService extends Service {
     const orderData = await this.ctx.model.Order.find(
       {...condition},
       'orderId user status createdAt gooods total'
-    ).populate({ path: 'goods', select: 'name price num' })
-    const xlsxData = [['订单号', '姓名', '电话', '收货地址', '下单时间', '商品信息', '总价']]
-    orderData.map(item => {
+    ).populate({ path: 'goods', select: 'name price num zprice apply' }).populate('owner')
+    const xlsxData = [['订单号', '所属总代', '客户姓名', '客户电话', '收货地址', '下单时间', '商品名称', '进价', '总代价', '数量', '供应商']]
+    await Promise.all(orderData.map(async item => {
       const { orderId, user, createdAt, goods, total } = item
       const { name: username, address, mobile } = user
-      const goodsInfo = goods.map(item => {
-        return `${item.name}:${item.num}件`
+      // 获取订单所属者名称，如果不是总代，则获取他的上级
+      let zName = item.owner.username
+      if (item.owner.role === 3) {
+        const bossInfo = await this.ctx.model.User.findById(this.owner.boss)
+        zName = bossInfo.username
+      }
+      goods.map(item => {
+        const lineData = [orderId, zName, username, mobile, address, createdAt, item.name, item.price, item.zprice, item.num, item.apply]
+        xlsxData.push(lineData)
       })
-      const lineData = [orderId, username, mobile, address, createdAt, goodsInfo.join(';'), total]
-      xlsxData.push(lineData)
-    })
+    }))
     const buffer = await xlsx.build([{ name: 'sheet1', data: xlsxData }])
     return buffer
   }

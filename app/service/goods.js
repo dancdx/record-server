@@ -25,7 +25,8 @@ class GoodsService extends Service {
           bprice: item.bprice,
           tprice: item.tprice,
           zprice: item.zprice,
-          lprice: item.lprice
+          lprice: item.lprice,
+          apply: item.apply
         }
       })
     } catch (e) {

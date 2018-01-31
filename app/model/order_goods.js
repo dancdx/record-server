@@ -14,7 +14,8 @@ module.exports = app => {
     category: { type: Number, default: 0 },
     num: { type: Number, default: 1 },
     skuId: { type: Number },
-    total: { type: Number }
+    total: { type: Number },
+    apply: { type: String } // 供应商
   }, {
     timestamps: true,
   })
