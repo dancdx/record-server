@@ -90,7 +90,7 @@ class OrderService extends Service {
       {...condition},
       'orderId user status createdAt gooods total'
     ).populate({ path: 'goods', select: 'name price num zprice apply' }).populate('owner')
-    const xlsxData = [['订单号', '所属总代', '客户姓名', '客户电话', '收货地址', '下单时间', '商品名称', '进价', '总代价', '数量', '供应商']]
+    const xlsxData = [['订单号', '下单时间', '所属总代', '客户姓名', '客户电话', '收货地址', '商品名称', '数量', '总代价', '进价', '供应商']]
     await Promise.all(orderData.map(async item => {
       const { orderId, user, createdAt, goods, total } = item
       const { name: username, address, mobile } = user
@@ -101,7 +101,7 @@ class OrderService extends Service {
         zName = bossInfo.username
       }
       goods.map(item => {
-        const lineData = [orderId, zName, username, mobile, address, createdAt, item.name, item.price, item.zprice, item.num, item.apply]
+        const lineData = [orderId, createdAt, zName, username, mobile, address, item.name, item.num, item.zprice, item.price, item.apply]
         xlsxData.push(lineData)
       })
     }))
