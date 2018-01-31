@@ -40,5 +40,6 @@ module.exports = app => {
   router.post('/order/add', order.add)
   router.post('/order/update', order.update)
   router.get('/order/check', order.check)
+  router.get('/order/download', order.download)
   router.get('/order/:id', order.detail)
 }

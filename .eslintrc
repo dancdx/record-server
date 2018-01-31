@@ -6,5 +6,8 @@
     "strict": "off",
     "comma-dangle": "off",
     "space-before-function-paren": "off"
+  },
+  "parserOptions": {
+    "ecmaVersion": 6
   }
 }

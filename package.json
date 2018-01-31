@@ -13,6 +13,7 @@
     "egg-scripts": "^2.1.0",
     "mongoose-unique-validator": "^1.0.6",
     "ms": "^2.1.1",
+    "node-xlsx": "^0.11.2",
     "shortid": "^2.2.8",
     "stream-wormhole": "^1.0.3"
   },

@@ -3,7 +3,6 @@
 const BaseController = require('./base')
 
 class OrderController extends BaseController {
-
   // 分页获取列表
   async index () {
     const params = this.ctx.query
@@ -45,6 +44,17 @@ class OrderController extends BaseController {
     const { id, driver } = this.ctx.query
     await this.service.order.check(id, driver)
     this.success()
+  }
+
+  // 下载excel
+  async download () {
+    const params = this.ctx.request.body
+    const info = await this.service.order.download(params)
+    this.ctx.set({
+      'Content-Type': 'application/octet-stream',
+      'Content-Disposition': 'attachment; filename=order.xlsx'
+    })
+    this.ctx.body = info
   }
 
 }
