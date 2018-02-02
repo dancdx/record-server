@@ -4,7 +4,7 @@ const Controller = require('egg').Controller
 
 class HomeController extends Controller {
   index() {
-    this.ctx.body = 'hi, egg'
+    this.ctx.body = 'hi, friends'
   }
 }
 

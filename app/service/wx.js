@@ -1,4 +1,5 @@
 const Service = require('./base')
+const crypto = require('crypto')
 
 class WxService extends Service {
 
