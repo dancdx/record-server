@@ -12,7 +12,8 @@ module.exports = app => {
     goods,
     category,
     upload,
-    order
+    order,
+    wx
   } = controller
 
   router.get('/', home.index)
@@ -42,4 +43,6 @@ module.exports = app => {
   router.get('/order/check', order.check)
   router.get('/order/download', order.download)
   router.get('/order/:id', order.detail)
+
+  router.get('/wx', wx.index)
 }

@@ -6,6 +6,9 @@ module.exports = appInfo => {
   // use for cookie sign key, should change to your own and keep security
   config.keys = appInfo.name + '_1515133826169_7511'
 
+  // wx token
+  config.token = 1515133826169
+
   config.host = 'localhost:7001'
 
   config.security = {
@@ -26,7 +29,6 @@ module.exports = appInfo => {
   // error config
   config.onerror = {
     all (err, ctx) {
-      console.log('-------------------------------', typeof err)
       const [ message, code ] = err.message.split(',')
       const res = {
         code: code || -1,
@@ -53,7 +55,7 @@ module.exports = appInfo => {
 
   config.cors = {
     // origin: '*',
-    origin: 'http://localhost:3000',
+    origin: [ 'http://localhost:3000', /\frontjs.cc$/ ],
     allowMethods: 'GET,HEAD,PUT,POST,DELETE,PATCH',
     credentials: true
   }
