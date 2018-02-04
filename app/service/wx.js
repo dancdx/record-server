@@ -4,20 +4,21 @@ const crypto = require('crypto')
 class WxService extends Service {
 
   async index (params) {
+    console.log(params)
     const { signature, timestamp, nonce, echostr } = params
     const token = this.config.token
-    let oriArray = [ nonce, timestamp, token]
+    const oriArray = [ nonce, timestamp, token ]
     oriArray.sort()
-    let scyptoString = this.sha1(oriArray.join(''))
-    if (signature == scyptoString) {
+    const scyptoString = this.sha1(oriArray.join(''))
+    console.log(scyptoString)
+    if (signature === scyptoString) {
       return echostr
-    } else {
-      return 'fail'
     }
+    return 'fail'
   }
 
   sha1 (str) {
-    let md5sum = crypto.createHash('sha1')
+    const md5sum = crypto.createHash('sha1')
     md5sum.update(str)
     str = md5sum.digest('hex')
     return str

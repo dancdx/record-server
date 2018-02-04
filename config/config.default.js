@@ -17,7 +17,7 @@ module.exports = appInfo => {
 
   // add your config here
   config.middleware = [
-    'saveSession'
+    // 'saveSession'
   ]
 
   // mongoose
@@ -55,7 +55,7 @@ module.exports = appInfo => {
 
   config.cors = {
     // origin: '*',
-    origin: [ 'http://localhost:3000', /\frontjs.cc$/ ],
+    origin: 'http://localhost:7000',
     allowMethods: 'GET,HEAD,PUT,POST,DELETE,PATCH',
     credentials: true
   }

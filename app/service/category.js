@@ -5,10 +5,11 @@ class CategoryService extends Service {
   async index () {
     const user = this.ctx.session.user
     try {
-      if (user.role !== 0 || user.role !== 1) this.ctx.throw(200, '权限不足')
+      if (user.role !== 0 && user.role !== 1) this.ctx.throw(200, '权限不足')
       const info = await this.ctx.model.Category.find({}, '_id name')
       return info
     } catch (e) {
+      console.log(e)
       this.ctx.throw(200, '获取列表失败')
     }
   }

@@ -15,6 +15,7 @@ class UserController extends BaseController {
     const { username, password, remember = false } = this.ctx.request.body
     const userInfo = await this.service.user.login({ username, password, remember })
     this.ctx.session.user = userInfo
+    this.ctx.session.maxAge = ms('10d')
     // 记住密码30天
     if (remember === 'true' || remember === true) this.ctx.session.maxAge = ms('30d')
     this.success(userInfo)

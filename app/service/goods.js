@@ -37,13 +37,14 @@ class GoodsService extends Service {
   // 查询所有
   async list (params) {
     const { page = 1, pageSize = 20, status } = params
+    const queryCondition = {}
+    if (status !== '') queryCondition.status = status
     try {
-      const condition = { skip: (page - 1) * pageSize, limit: pageSize }
-      if (status) condition.status = status
+      // const condition = { skip: (page - 1) * pageSize, limit: pageSize }
       const goodsList = await this.ctx.model.Goods.find(
-        { status: 0 },
-        '_id name desc price tprice zprice',
-        condition
+        {...queryCondition},
+        '_id skuId name image desc price tprice zprice lprice',
+        // condition
       )
       return goodsList.map(item => {
         return {

@@ -6,7 +6,8 @@ class GoodsController extends BaseController {
 
   // 获取所有
   async index () {
-    const goods = await this.service.goods.list()
+    const params = this.ctx.query
+    const goods = await this.service.goods.list(params)
     this.success(goods)
   }
 
