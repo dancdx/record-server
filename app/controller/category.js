@@ -22,7 +22,7 @@ class CategoryController extends BaseController {
   }
 
   async update () {
-    const { id, name } = this.ctx.body
+    const { id, name } = this.ctx.request.body
     const info = await this.service.category.update(id, name)
     this.success(info)
   }
