@@ -10,6 +10,7 @@
     "egg-cors": "^2.0.0",
     "egg-mongoose": "^2.1.1",
     "egg-multipart": "^2.0.0",
+    "egg-redis": "^1.0.2",
     "egg-scripts": "^2.1.0",
     "mongoose-unique-validator": "^1.0.6",
     "ms": "^2.1.1",

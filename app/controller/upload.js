@@ -40,7 +40,7 @@ class UploadController extends BaseController {
         arr.push({
           filename: newFilename,
           path: newPath,
-          url: fileUrl,
+          url: `//${fileUrl}`,
           type: part.mime
         })
       }

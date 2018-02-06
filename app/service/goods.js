@@ -30,6 +30,7 @@ class GoodsService extends Service {
         }
       })
     } catch (e) {
+      console.log(e)
       this.ctx.throw(200, '上架失败，请稍后再试')
     }
   }

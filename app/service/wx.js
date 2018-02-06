@@ -4,7 +4,6 @@ const crypto = require('crypto')
 class WxService extends Service {
 
   async index (params) {
-    console.log(params)
     const { signature, timestamp, nonce, echostr } = params
     const token = this.config.token
     const oriArray = [ nonce, timestamp, token ]
@@ -15,6 +14,16 @@ class WxService extends Service {
       return echostr
     }
     return 'fail'
+  }
+
+  async token () {
+    console.log(this.config.wx)
+    const { appid, secret } = this.config.wx
+    const result = await this.ctx.curl(
+      `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${appid}&secret=${secret}`,
+      { dataType: 'json' })
+    console.log(result.data)
+    return result.data
   }
 
   sha1 (str) {

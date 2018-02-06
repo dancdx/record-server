@@ -60,5 +60,19 @@ module.exports = appInfo => {
     credentials: true
   }
 
+  // config.redis = {
+  //   client: {
+  //     port: 6379,
+  //     host: '127.0.0.1',
+  //     password: 'auth',
+  //     db: 0
+  //   },
+  // }
+
+  config.wx = {
+    appid: 'appid',
+    secret: 'secret'
+  }
+
   return config
 }

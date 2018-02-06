@@ -45,4 +45,5 @@ module.exports = app => {
   router.get('/order/:id', order.detail)
 
   router.get('/wx', wx.index)
+  router.get('/wx/token', wx.token)
 }
