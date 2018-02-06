@@ -10,4 +10,6 @@ run/
 .DS_Store
 *.sw*
 *.un~
+app/public/static/*
+!app/public/static/.gitkeep
 .vscode
