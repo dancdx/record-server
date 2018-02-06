@@ -17,7 +17,7 @@ class CategoryService extends Service {
   async detail (id) {
     if (!id) this.ctx.throw(200, '请选择一个分类')
     try {
-      const info = this.ctx.model.Category.findById(id, '_id name')
+      const info = await this.ctx.model.Category.findById(id, '_id name')
       if (!info) this.ctx.throw(200, '无效分类')
       return info
     } catch (e) {
@@ -49,7 +49,7 @@ class CategoryService extends Service {
   async update (id, name) {
     if (!id) this.ctx.throw(200, '请选择一个分类')
     try {
-      const info = this.ctx.model.Category.findOneAndUpdate(
+      const info = await this.ctx.model.Category.findOneAndUpdate(
         { _id: id }, { name }, { new: true })
       if (!info) this.ctx.throw(200, '无效分类')
       return { name, id }
@@ -61,7 +61,7 @@ class CategoryService extends Service {
   async remove (id) {
     if (!id) this.ctx.throw(200, '请选择一个分类')
     try {
-      const info = this.ctx.model.Category.findById(id)
+      const info = await this.ctx.model.Category.findById(id)
       if (!info) this.ctx.throw(200, '无效分类')
       await info.remove()
       return 'success'
