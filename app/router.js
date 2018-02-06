@@ -25,7 +25,7 @@ module.exports = app => {
   router.get('/category', category.index)
   router.post('/category/add', category.add)
   router.post('/category/update', category.update)
-  router.get('/category/remove', category.remove)
+  router.get('/category/remove/:id', category.remove)
   router.get('/category/:id', category.detail)
 
   router.get('/goods', goods.index)
