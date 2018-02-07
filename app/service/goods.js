@@ -12,7 +12,6 @@ class GoodsService extends Service {
         return item
       }))
       // const { name, desc, price, tprice, zprice } = params
-      // 权限控制，待添加
       const info = await this.ctx.model.Goods.create(goods)
       if (!info) this.ctx.throw(200, '添加商品失败')
       return info.map(item => {
@@ -37,10 +36,11 @@ class GoodsService extends Service {
 
   // 查询所有
   async list (params) {
-    const { page = 1, pageSize = 20, status } = params
+    const { page = 1, pageSize = 20, status = 0 } = params
     const queryCondition = {}
-    if (status !== '') queryCondition.status = status
     try {
+      // 默认查正常状态的，传3查询全部
+      if (Number(status) !== 3) queryCondition.status = status
       // const condition = { skip: (page - 1) * pageSize, limit: pageSize }
       const goodsList = await this.ctx.model.Goods.find(
         {...queryCondition},
