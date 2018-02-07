@@ -117,7 +117,6 @@ class OrderService extends Service {
         { orderId: parseInt(orderId) },
         '_id orderId goods createAt status user'
       ).populate({ path: 'goods', select: '_id image num total category price name desc' })
-      console.log(detailInfo)
       if (!detailInfo) this.ctx.throw(200, '订单号不存在')
       return detailInfo
     } catch (e) {

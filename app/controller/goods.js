@@ -14,6 +14,7 @@ class GoodsController extends BaseController {
   // 商品详情
   async detail () {
     const { goodsId } = this.ctx.params
+    this.ctx.body = '暂时无法查询'
   }
 
   // 添加商品
@@ -27,7 +28,7 @@ class GoodsController extends BaseController {
   async setGoodsStatus () {
     const { id, type } = this.ctx.request.body
     await this.service.goods.setGoodsStatus(id, type)
-    this.success(null)
+    this.success('success')
   }
 
   // 更新
@@ -41,7 +42,7 @@ class GoodsController extends BaseController {
   async remove () {
     const { id } = this.ctx.query
     await this.service.goods.remove(id)
-    this.success(null)
+    this.success('success')
   }
 
 }

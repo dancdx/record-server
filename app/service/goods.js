@@ -44,9 +44,9 @@ class GoodsService extends Service {
       // const condition = { skip: (page - 1) * pageSize, limit: pageSize }
       const goodsList = await this.ctx.model.Goods.find(
         {...queryCondition},
-        '_id skuId name image desc price tprice zprice lprice',
+        '_id skuId name image desc bprice category tprice zprice lprice apply status',
         // condition
-      )
+      ).populate('category')
       return goodsList.map(item => {
         return {
           id: item.id,
@@ -57,17 +57,22 @@ class GoodsService extends Service {
           bprice: item.bprice,
           tprice: item.tprice,
           zprice: item.zprice,
-          lprice: item.lprice
+          lprice: item.lprice,
+          apply: item.apply,
+          status: item.status,
+          category: item.category.name,
+          categoryId: item.category._id
         }
       })
     } catch (e) {
+      console.log(e)
       this.ctx.throw(200, '获取商品列表失败')
     }
   }
 
-  // 下架: 1,  上架:0
+  // 下架: 0,  上架:1
   async setGoodsStatus (id, type) {
-    const status = Number(type) === 1 ? 1 : 0
+    const status = Number(type) === 0 ? 1 : 0
     const goods = await this.ctx.model.Goods.findOneAndUpdate({ _id: id }, { status }, { new: true })
     if (!goods) this.ctx.throw(200, '操作失败')
     return true
@@ -77,22 +82,28 @@ class GoodsService extends Service {
   async update (params) {
     const { goods } = params
     if (!goods) this.ctx.throw(200, '参数非法')
-    const { id, name, desc, price, tprice, zprice, category = 0 } = goods
-    const info = await this.ctx.model.Goods.findOneAndUpdate(
-      { _id: id },
-      { name, desc, price, tprice, zprice, category },
-      { new: true }
-    )
-    if (!info) this.ctx.throw('更新商品信息失败')
-    return {
-      id: info._id,
-      skuId: info.skuId,
-      name: info.name,
-      desc: info.desc,
-      price: info.price,
-      tprice: info.tprice,
-      zprice: info.zprice
+    try {
+      const { id, name, desc, bprice, lprice, tprice, zprice, image, category } = goods[0]
+      const info = await this.ctx.model.Goods.findOneAndUpdate(
+        { _id: id },
+        { name, desc, bprice, tprice, zprice, lprice, category, image },
+        { new: true }
+      )
+      if (!info) this.ctx.throw('更新商品信息失败')
+      return {
+        id: info._id,
+        skuId: info.skuId,
+        name: info.name,
+        desc: info.desc,
+        price: info.price,
+        tprice: info.tprice,
+        zprice: info.zprice
+      }
+    } catch (e) {
+      console.log(e)
+      this.ctx.throw('更新商品信息失败')
     }
+    
   }
 
   // 删除
