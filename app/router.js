@@ -18,9 +18,10 @@ module.exports = app => {
 
   router.get('/', home.index)
 
-  router.get('/user', user.index)
+  router.get('/user', user.index) // 获取下属列表
   router.post('/user/add', user.add)
   router.post('/user/login', user.login)
+  router.get('/user/checklist', user.listCheck) // 获取未审核用户列表
 
   router.get('/category', category.index)
   router.post('/category/add', category.add)

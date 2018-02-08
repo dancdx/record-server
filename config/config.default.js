@@ -29,6 +29,11 @@ module.exports = appInfo => {
   // error config
   config.onerror = {
     all (err, ctx) {
+      if (err.message && err.message.indexOf('已经被注册过') > -1) {
+        err.message = '手机号或微信号已经被注册过'
+        err.status = 200
+      }
+      console.log('---', err.message, '---')
       const [ message, code ] = err.message.split(',')
       const res = {
         code: code || -1,
