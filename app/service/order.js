@@ -1,20 +1,25 @@
 const Service = require('./base')
 const xlsx = require('node-xlsx')
 const fs = require('fs')
+const { role } = require('../extend/constains')
+const { ADMIN, ZONGDAI, TEDAI } = role
 
 class OrderService extends Service {
 
   // 添加订单
-  async add (params, userId) {
+  async add (params) {
     const { user, goods } = params
     const orderId = await this.createOrderId()
     const total = 0
     try {
+      const curRole = this.user.role
+      const curUserId = this.user.id
+      const status = curRole === ZONGDAI ? 1 : 0
       const goodsInfo = await Promise.all(goods.map(async item => {
-        let curItem = { num: item.num, userId: this.ctx.session.user.id }
-        const priceType = 'tprice' // 角色价格类型，后续要处理
+        let curItem = { num: item.num, userId: curUserId }
+        const priceType = curRole === ZONGDAI ? 'zprice' : 'tprice' // 角色价格类型
         // 查商品表，获取商品信息
-        const curGoodsModel = await this.ctx.model.Goods.findById(item.id, 'skuId zprice tprice apply name image desc ' + priceType)
+        const curGoodsModel = await this.ctx.model.Goods.findById(item.id, 'skuId lprice zprice tprice apply name image desc ' + priceType)
         const curGoodsInfo = curGoodsModel.toObject()
         curGoodsInfo.price = curGoodsInfo[priceType]
         curGoodsInfo.total = curGoodsInfo.price * item.num
@@ -30,11 +35,12 @@ class OrderService extends Service {
       })
       // 存订单表
       const orderInfo = await this.ctx.model.Order.create({
-        owner: userId,
+        owner: curUserId,
         orderId,
         goods: goodsIds,
         user,
-        total
+        total,
+        status
       })
       if (orderInfo) return { orderId }
       this.ctx.throw(200, '录单失败，请稍后再试！')

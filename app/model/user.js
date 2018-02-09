@@ -20,7 +20,7 @@ module.exports = app => {
     role: { type: Number, default: 3 }, // 0 superadmn   1 admim   2  big   3 small
     boss: { type: Schema.Types.ObjectId, ref: 'User' }, // 上级
     members: [{ type: Schema.Types.ObjectId, ref: 'User' }], // 下级
-    status: { type: Number, default: 2 } // 0已审核  1总代已审核  2 未审核
+    status: { type: Number, default: 2 } // 0已审核  1总代已审核  2 未审核 3 驳回
   }, {
     timestamps: true,
   })

@@ -22,6 +22,7 @@ module.exports = app => {
   router.post('/user/add', user.add)
   router.post('/user/login', user.login)
   router.get('/user/checklist', user.listCheck) // 获取未审核用户列表
+  router.get('/user/check', user.check) // 审核
 
   router.get('/category', category.index)
   router.post('/category/add', category.add)

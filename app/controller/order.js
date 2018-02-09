@@ -13,8 +13,7 @@ class OrderController extends BaseController {
   // 添加订单
   async add () {
     const params = this.ctx.request.body
-    const userId = this.user
-    const info = await this.service.order.add(params, userId)
+    const info = await this.service.order.add(params)
     this.success(info)
   }
 

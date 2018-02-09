@@ -11,9 +11,18 @@ class UserController extends BaseController {
     this.success(userList)
   }
 
+  // 未审核列表 | 驳回列表
   async listCheck () {
-    const userList = await this.service.user.listCheck()
+    const { type } = this.ctx.query
+    const userList = await this.service.user.listCheck(type)
     this.success(userList)
+  }
+
+  // 审核或驳回
+  async check () {
+    const { id, type } = this.ctx.query
+    await this.service.user.check(id, type)
+    this.success()
   }
 
   async login() {
