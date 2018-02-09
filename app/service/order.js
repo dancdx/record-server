@@ -52,7 +52,7 @@ class OrderService extends Service {
 
   // 查询列表
   async list (params) {
-    const { pageSize, page, status, startTime, endTime, userId, sort = '-1' } = params
+    const { pageSize = 100, page = 1, status, startTime, endTime, userId, sort = '-1' } = params
     // 查询条件
     const queryCondition = { owner: this.user.id }
     if (status) queryCondition.status = status
@@ -74,8 +74,9 @@ class OrderService extends Service {
         .sort({createdAt: sort})
         .skip((page - 1) * pageSize)
         .limit(parseInt(pageSize))
+      const count = await this.ctx.model.Order.count({...queryCondition})
       if (!orders) this.ctx.throw(200, '获取订单失败')
-      return orders
+      return { orders, count }
     } catch (e) {
       console.log(e)
       this.ctx.throw(200, '获取订单列表失败')
@@ -118,15 +119,15 @@ class OrderService extends Service {
   }
 
   // 订单详情
-  async detail (orderId) {
-    if (!orderId || isNaN(parseInt(orderId))) this.ctx.throw(200, 'orderId is necessary, please try again')
+  async detail (id) {
+    if (!id || isNaN(parseInt(id))) this.ctx.throw(200, '非法ID')
     try {
       const detailInfo = await this.ctx.model.Order.find(
-        { orderId: parseInt(orderId) },
+        { _id: id },
         '_id orderId goods createAt status user'
       ).populate({ path: 'goods', select: '_id image num total category price name desc' })
-      if (!detailInfo) this.ctx.throw(200, '订单号不存在')
-      return detailInfo
+      if (!detailInfo) this.ctx.throw(200, '非法ID')
+      return detailInfo[0]
     } catch (e) {
       this.ctx.throw(200, '获取订单详情失败')
     }
