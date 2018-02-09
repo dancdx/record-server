@@ -10,7 +10,7 @@ class OrderService extends Service {
   async add (params) {
     const { user, goods } = params
     const orderId = await this.createOrderId()
-    const total = 0
+    let total = 0
     try {
       const curRole = this.user.role
       const curUserId = this.user.id
@@ -43,8 +43,9 @@ class OrderService extends Service {
         status
       })
       if (orderInfo) return { orderId }
-      this.ctx.throw(200, '录单失败，请稍后再试！')
+      this.ctx.throw(200, '录单失败')
     } catch (e) {
+      console.log(e)
       this.ctx.throw(200, '录单失败，请稍后再试！')
     }
   }
@@ -76,6 +77,7 @@ class OrderService extends Service {
       if (!orders) this.ctx.throw(200, '获取订单失败')
       return orders
     } catch (e) {
+      console.log(e)
       this.ctx.throw(200, '获取订单列表失败')
     }
   }
@@ -178,8 +180,8 @@ class OrderService extends Service {
     const curRole = this.user.role
     if (curRole > 2) this.ctx.throw(200, '您无权审核')
     let newStatus = 1 // 默认一级审核
-    if (curRole === 1) newStatus = 2 // 二级审核
-    if (curRole === 1 && driver) newStatus = 3 // 发货
+    if (curRole === ADMIN) newStatus = 2 // 二级审核
+    if (curRole === ADMIN && driver) newStatus = 3 // 发货
     try {
       await this.ctx.model.Order.findOneAndUpdate(
         { orderId },
@@ -189,6 +191,18 @@ class OrderService extends Service {
       return true
     } catch (e) {
       this.ctx.throw(200, '审核异常，请稍后再试')
+    }
+  }
+
+  // 快递单号录入
+  async driver (params) {
+    try {
+      const curRole = this.user.role
+      if (curRole !==1) this.ctx.throw(200, '无权访问')
+
+    } catch (e) {
+      console.log(e)
+      this.ctx.throw(200, '操作失败')
     }
   }
 

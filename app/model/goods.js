@@ -20,7 +20,8 @@ module.exports = app => {
     lprice: { type: Number, required: true },
     category: { type: Schema.Types.ObjectId, ref: 'Category' }, // 商品分类
     status: { type: Number, default: 0 }, // 0:正常  1:下架
-    apply: { type: String } // 供应商
+    apply: { type: String, default: '' }, // 供应商
+    driverNo: { type: String, default: '' } // 快递单号
   }, {
     timestamps: true,
   })
