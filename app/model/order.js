@@ -5,7 +5,8 @@ module.exports = app => {
   const Schema = mongoose.Schema
 
   const OrderSchema = new Schema({
-    owner: { type: Schema.Types.ObjectId, ref: 'User' },
+    ownerBoss: { type: Schema.Types.ObjectId, ref: 'User' }, // 订单创建者的上级
+    owner: { type: Schema.Types.ObjectId, ref: 'User' }, // 订单创建者
     orderId: { type: Number },
     user: {
       name: { type: String, required: true },
@@ -13,7 +14,7 @@ module.exports = app => {
       address: { type: String, required: true }
     },
     goods: [{ type: Schema.Types.ObjectId, ref: 'OrderGoods' }],
-    status: { type: Number, default: 0 }, // 0:未审核(待处理)  1:一级审核(已提交)  2:已审核(已提交) 3:已发货
+    status: { type: Number, default: 0 }, // 0:未审核(待处理)  1:总代已审核(已提交)  2:公司已审核(已提交) 3:已发货  4:总代驳回  5:公司驳回
     total: { type: Number }
   }, {
     timestamps: true,

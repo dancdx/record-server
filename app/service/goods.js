@@ -60,8 +60,8 @@ class GoodsService extends Service {
           lprice: item.lprice,
           apply: item.apply,
           status: item.status,
-          category: item.category.name,
-          categoryId: item.category._id
+          category: item.category && item.category.name,
+          categoryId: item.category && item.category._id
         }
       })
     } catch (e) {

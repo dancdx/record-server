@@ -14,6 +14,7 @@ class OrderService extends Service {
     try {
       const curRole = this.user.role
       const curUserId = this.user.id
+      const ownerBoss = this.user.boss
       const status = curRole === ZONGDAI ? 1 : 0
       const goodsInfo = await Promise.all(goods.map(async item => {
         let curItem = { num: item.num, userId: curUserId }
@@ -36,6 +37,7 @@ class OrderService extends Service {
       // 存订单表
       const orderInfo = await this.ctx.model.Order.create({
         owner: curUserId,
+        ownerBoss,
         orderId,
         goods: goodsIds,
         user,
@@ -52,9 +54,15 @@ class OrderService extends Service {
 
   // 查询列表
   async list (params) {
-    const { pageSize = 100, page = 1, status, startTime, endTime, userId, sort = '-1' } = params
+    let { pageSize = 100, page = 1, status, startTime, endTime, userId, sort = '-1', key, type } = params
     // 查询条件
-    const queryCondition = { owner: this.user.id }
+    const queryCondition = {}
+    // type 为总代查询特代的
+    if (type && Number(type) === 1) {
+      queryCondition.ownerBoss = this.user.id
+    } else {
+      queryCondition.owner = this.user.id
+    }
     if (status) queryCondition.status = status
     if (startTime || endTime) {
       queryCondition.createdAt = {}
@@ -63,6 +71,14 @@ class OrderService extends Service {
       }
       if (endTime) {
         queryCondition.createdAt.$lte = new Date(endTime)
+      }
+    }
+    // 搜索关键字
+    if (key) {
+      if (this.ctx.helper.reg.telephone.test(key)) {
+        queryCondition['user.mobile'] = key
+      } else {
+        queryCondition['user.name'] = key
       }
     }
     // 传userId，则查询对应下属的订单列表

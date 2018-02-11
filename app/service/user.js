@@ -8,6 +8,9 @@ class UserService extends Service {
     if (!user) {
       this.ctx.throw(200, '用户名不存在')
     }
+    if (user.status !== 0) {
+      this.ctx.throw(200, '用户审核中')
+    }
     try {
       const isMatch = await user.verifyPassword(password)
       if (!isMatch) {
@@ -16,39 +19,43 @@ class UserService extends Service {
     } catch (e) {
       this.ctx.throw(200, '密码错误')
     }
-    const { telephone, avatarUrl, role } = user
-    return { id: user._id, username, telephone, avatarUrl, role }
+    const { telephone, avatarUrl, role, boss } = user
+    return { id: user._id, username, telephone, avatarUrl, role, boss }
   }
 
   async add (params) {
-    try {
-      if (!params || !params.boss) this.ctx.throw(200, '链接非法')
-      const { username, telephone, avatarUrl, boss, wx, idCard, idCardDownUrl, idCardUpUrl } = params
-      // 获取bossInfo
-      const bossInfo = await this.ctx.model.User.findById(boss)
-      if (!bossInfo) this.ctx.throw(200, '上级ID错误或不存在')
-      const bossRole = bossInfo.role
-      if (bossRole === TEDAI) this.ctx.throw(200, '上级权限不足，不能添加代理')
-      // 根据上级角色设置用户角色
-      let role = TEDAI // 默认特代
-      if (bossRole === ADMIN) role = ZONGDAI
-      let status = role === ZONGDAI ? 2 : 1 // 总代状态为总代已审核，特代状态为未审核
-      // 查找当前申请是否申请过或者已驳回
-      const findPreUser = await this.ctx.model.User.find({ telephone })
-      if (findPreUser) {
-        const status = findPreUser.status
-        // 驳回状态则更新申请信息
-        if (status === 3) {
-          params._id = findPreUser._id
-          this.updateAdd(params)
-        } else {
-          if (status === 0) {
-            this.ctx.throw(200, '手机号已注册')
-          } else {
-            this.ctx.throw(200, '审核中, 请勿重复申请')
-          }
-        }
+    if (!params || !params.boss) this.ctx.throw(200, '链接非法')
+    const { username, telephone, avatarUrl, boss, wx, idCard, idCardDownUrl, idCardUpUrl } = params
+    // 获取bossInfo
+    const bossInfo = await this.ctx.model.User.findById(boss)
+    if (!bossInfo) this.ctx.throw(200, '上级ID错误或不存在')
+    const bossRole = bossInfo.role
+    if (bossRole === TEDAI) this.ctx.throw(200, '上级权限不足，不能添加代理')
+    // 根据上级角色设置用户角色
+    let role = TEDAI // 默认特代
+    if (bossRole === ADMIN) role = ZONGDAI
+    let status = role === ZONGDAI ? 2 : 1 // 总代状态为总代已审核，特代状态为未审核
+    //公司或总代主动添加
+    if (this.user) {
+      status = role === ZONGDAI ? 1 : 0 // 添加总代直接通过，添加特代还需公司审核
+    }
+    // 查找当前申请是否申请过或者已驳回
+    const findPreUser = await this.ctx.model.User.findOne({ telephone })
+    if (findPreUser) {
+      const status = findPreUser.status
+      // 驳回状态则更新申请信息
+      if (status === 3) {
+        params._id = findPreUser._id
+        this.updateAdd(params)
       } else {
+        if (status === 0) {
+          this.ctx.throw(200, '手机号已注册')
+        } else {
+          this.ctx.throw(200, '审核中, 请勿重复申请')
+        }
+      }
+    } else {
+      try {
         // 创建用户
         const user = await this.ctx.model.User.create({
           username,
@@ -69,10 +76,10 @@ class UserService extends Service {
         // bossInfo.members = newArr
         // await bossInfo.save()
         return { id: user._id, username, telephone, avatarUrl, role }
+      } catch (e) {
+        console.log(e)
+        this.ctx.throw(200, '申请失败')
       }
-    } catch (e) {
-      console.log(e)
-      this.ctx.throw(200, '申请失败')
     }
   }
 
@@ -80,7 +87,7 @@ class UserService extends Service {
   async updateAdd (params) {
     try {
       const { _id, username, telephone, wx, idCard, idCardDownUrl, idCardUpUrl } = params
-      const updateParams = this.helper.merge({ status: 2 }, { username, telephone, wx, idCard, idCardDownUrl, idCardUpUrl })
+      const updateParams = this.ctx.helper.merge({ status: 2 }, { username, telephone, wx, idCard, idCardDownUrl, idCardUpUrl })
       const updateInfo = await this.ctx.model.User.findOneAndUpdate(
         { _id },
         {...updateParams},

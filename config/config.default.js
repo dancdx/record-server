@@ -10,6 +10,7 @@ module.exports = appInfo => {
   config.token = 1515133826169
 
   config.host = 'localhost:7001'
+  // config.host = 'http://192.168.0.102:7001'
 
   config.security = {
     csrf: false
@@ -61,6 +62,7 @@ module.exports = appInfo => {
   config.cors = {
     // origin: '*',
     origin: 'http://localhost:7000',
+    // origin: 'http://192.168.0.102:7000',
     allowMethods: 'GET,HEAD,PUT,POST,DELETE,PATCH',
     credentials: true
   }

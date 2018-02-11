@@ -25,8 +25,8 @@ module.exports = appInfo => {
 
   config.cors = {
     // origin: '*',
-    // origin: /\frontjs.cc$/,
-    origin: 'http://localhost:7000',
+    origin: 'http://hanfei.frontjs.cc',
+    // origin: 'http://localhost:7000',
     allowMethods: 'GET,HEAD,PUT,POST,DELETE,PATCH',
     credentials: true
   }

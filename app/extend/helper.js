@@ -12,5 +12,9 @@ module.exports = {
       return item
     })
     return origin
+  },
+
+  reg: {
+    telephone: /^1[34578][0-9]{9}$/
   }
 }
