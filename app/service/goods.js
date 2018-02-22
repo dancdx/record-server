@@ -1,7 +1,6 @@
 const Service = require('./base')
 
 class GoodsService extends Service {
-
   // 上架，可同时增加多个
   async add (params) {
     const { goods } = params

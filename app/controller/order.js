@@ -40,8 +40,8 @@ class OrderController extends BaseController {
 
   // 审核
   async check () {
-    const { id, driver } = this.ctx.query
-    await this.service.order.check(id, driver)
+    const { id, type, driver } = this.ctx.query
+    await this.service.order.check(id, type, driver)
     this.success()
   }
 

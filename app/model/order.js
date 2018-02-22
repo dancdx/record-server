@@ -15,7 +15,8 @@ module.exports = app => {
     },
     goods: [{ type: Schema.Types.ObjectId, ref: 'OrderGoods' }],
     status: { type: Number, default: 0 }, // 0:未审核(待处理)  1:总代已审核(已提交)  2:公司已审核(已提交) 3:已发货  4:总代驳回  5:公司驳回
-    total: { type: Number }
+    total: { type: Number }, // 总金额
+    btotal: { type: Number } // 总成本
   }, {
     timestamps: true,
   })

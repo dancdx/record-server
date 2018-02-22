@@ -4,7 +4,6 @@ const BaseController = require('./base')
 const ms = require('ms')
 
 class UserController extends BaseController {
-
   // 获取下级用户列表
   async index () {
     const userList = await this.service.user.list()

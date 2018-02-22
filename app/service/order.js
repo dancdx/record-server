@@ -11,6 +11,7 @@ class OrderService extends Service {
     const { user, goods } = params
     const orderId = await this.createOrderId()
     let total = 0
+    let btotal = 0 // 总成本
     try {
       const curRole = this.user.role
       const curUserId = this.user.id
@@ -20,13 +21,15 @@ class OrderService extends Service {
         let curItem = { num: item.num, userId: curUserId }
         const priceType = curRole === ZONGDAI ? 'zprice' : 'tprice' // 角色价格类型
         // 查商品表，获取商品信息
-        const curGoodsModel = await this.ctx.model.Goods.findById(item.id, 'skuId lprice zprice tprice apply name image desc ' + priceType)
+        const curGoodsModel = await this.ctx.model.Goods.findById(item.id, 'skuId bprice, lprice zprice tprice apply name image desc ' + priceType)
         const curGoodsInfo = curGoodsModel.toObject()
         curGoodsInfo.price = curGoodsInfo[priceType]
         curGoodsInfo.total = curGoodsInfo.price * item.num
+        curGoodsInfo.btotal = curGoodsInfo.bprice * item.num // 成本
         curItem = Object.assign(curItem, curGoodsInfo)
         delete curItem._id
         total += curGoodsInfo.total
+        btotal += curGoodsInfo.btotal
         return curItem
       }))
       // 存订单商品表
@@ -61,7 +64,9 @@ class OrderService extends Service {
     if (type && Number(type) === 1) {
       queryCondition.ownerBoss = this.user.id
     } else {
-      queryCondition.owner = this.user.id
+      if (this.user.role !== 1) {
+        queryCondition.owner = this.user.id
+      }
     }
     if (status) queryCondition.status = status
     if (startTime || endTime) {
@@ -191,22 +196,31 @@ class OrderService extends Service {
     }
   }
 
-  // 订单审核
-  async check (orderId, driver) {
-    if (!orderId) this.ctx.throw(200, '无效订单')
+  // 订单审核 orderType 0 通过 1 驳回
+  async check (id, orderType, driver) {
+    if (!id) this.ctx.throw(200, '无效订单')
     const curRole = this.user.role
     if (curRole > 2) this.ctx.throw(200, '您无权审核')
     let newStatus = 1 // 默认一级审核
     if (curRole === ADMIN) newStatus = 2 // 二级审核
     if (curRole === ADMIN && driver) newStatus = 3 // 发货
+    // 驳回情况
+    if (orderType === 1) {
+      if (curRole === ADMIN) {
+        newStatus = 5 // 公司驳回
+      } else {
+        newStatus = 4 // 总代驳回
+      }
+    }
     try {
       await this.ctx.model.Order.findOneAndUpdate(
-        { orderId },
+        { _id: id },
         { status: newStatus },
         { new: true }
       )
       return true
     } catch (e) {
+      console.log(e)
       this.ctx.throw(200, '审核异常，请稍后再试')
     }
   }

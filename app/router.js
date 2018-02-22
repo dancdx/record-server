@@ -13,6 +13,7 @@ module.exports = app => {
     category,
     upload,
     order,
+    statistic,
     wx
   } = controller
 
@@ -45,6 +46,8 @@ module.exports = app => {
   router.get('/order/check', order.check)
   router.get('/order/download', order.download)
   router.get('/order/:id', order.detail)
+
+  router.get('/statistic', statistic.index)
 
   router.get('/wx', wx.index)
   router.get('/wx/token', wx.token)
