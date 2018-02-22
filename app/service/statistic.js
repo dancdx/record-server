@@ -24,6 +24,19 @@ class StatisticService extends Service {
       if (userId) queryCondition.owner = userId
       const orderList = await this.ctx.model.Order.find({...queryCondition}).populate('goods')
       const data = await this.filterList(orderList)
+      // 总代则返回其下级代理
+      if (role === 2) {
+        const curUserInfo = await this.ctx.model.User.findOne({_id: id}, 'members').populate({ path: 'members', select: '_id username' })
+        await Promise.all(curUserInfo.members.map(async item => {
+          const newCondition = queryCondition
+          newCondition.owner = item._id
+          console.log(newCondition)
+          const curCount = await this.ctx.model.Order.count({...newCondition})
+          console.log(curCount)
+          item.count = curCount
+        }))
+        data.members = curUserInfo.members
+      }
       return data
     } catch (e) {
       console.log(e)
@@ -41,9 +54,10 @@ class StatisticService extends Service {
       item.goods.map(gitem => {
         goodsCount += gitem.num
         if (!goods[gitem.skuId]) {
-          goods[gitem.skuId] = { name: gitem.name, num: 0 }
+          goods[gitem.skuId] = { name: gitem.name, num: 0, total: 0 }
         }
         goods[gitem.skuId].num += gitem.num
+        goods[gitem.skuId].total += gitem.total
       })
     })
     let goodsArr = []

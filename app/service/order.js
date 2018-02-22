@@ -10,18 +10,20 @@ class OrderService extends Service {
   async add (params) {
     const { user, goods } = params
     const orderId = await this.createOrderId()
-    let total = 0
+    let total = 0 // 总价格
     let btotal = 0 // 总成本
+    let totalNum = 0 // 总商品数
     try {
       const curRole = this.user.role
       const curUserId = this.user.id
       const ownerBoss = this.user.boss
       const status = curRole === ZONGDAI ? 1 : 0
+      const orderType = curRole === ZONGDAI ? 1 : 2 // 1总代提交 2特代提交
       const goodsInfo = await Promise.all(goods.map(async item => {
         let curItem = { num: item.num, userId: curUserId }
         const priceType = curRole === ZONGDAI ? 'zprice' : 'tprice' // 角色价格类型
         // 查商品表，获取商品信息
-        const curGoodsModel = await this.ctx.model.Goods.findById(item.id, 'skuId bprice, lprice zprice tprice apply name image desc ' + priceType)
+        const curGoodsModel = await this.ctx.model.Goods.findById(item.id, 'skuId bprice lprice zprice tprice apply name image desc ' + priceType)
         const curGoodsInfo = curGoodsModel.toObject()
         curGoodsInfo.price = curGoodsInfo[priceType]
         curGoodsInfo.total = curGoodsInfo.price * item.num
@@ -30,6 +32,7 @@ class OrderService extends Service {
         delete curItem._id
         total += curGoodsInfo.total
         btotal += curGoodsInfo.btotal
+        totalNum += item.num
         return curItem
       }))
       // 存订单商品表
@@ -45,7 +48,10 @@ class OrderService extends Service {
         goods: goodsIds,
         user,
         total,
-        status
+        btotal,
+        totalNum,
+        status,
+        orderType
       })
       if (orderInfo) return { orderId }
       this.ctx.throw(200, '录单失败')
@@ -91,10 +97,12 @@ class OrderService extends Service {
     try {
       const orders = await this.ctx.model.Order.find(
         {...queryCondition},
-        '_id orderId user status createdAt ')
+        '_id orderId user status createdAt owner ownerBoss orderType ')
         .sort({createdAt: sort})
         .skip((page - 1) * pageSize)
         .limit(parseInt(pageSize))
+        .populate({path: 'owner', select: 'username'})
+        .populate({path: 'ownerBoss', select: 'username'})
       const count = await this.ctx.model.Order.count({...queryCondition})
       if (!orders) this.ctx.throw(200, '获取订单失败')
       return { orders, count }
@@ -145,8 +153,10 @@ class OrderService extends Service {
     try {
       const detailInfo = await this.ctx.model.Order.find(
         { _id: id },
-        '_id orderId goods createAt status user'
+        '_id orderId goods createAt status user total totalNum owner ownerBoss orderType'
       ).populate({ path: 'goods', select: '_id image num total category price name desc' })
+      .populate({path: 'owner', select: 'username'})
+      .populate({path: 'ownerBoss', select: 'username'})
       if (!detailInfo) this.ctx.throw(200, '非法ID')
       return detailInfo[0]
     } catch (e) {

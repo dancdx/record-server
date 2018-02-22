@@ -34,10 +34,10 @@ class UserService extends Service {
     // 根据上级角色设置用户角色
     let role = TEDAI // 默认特代
     if (bossRole === ADMIN) role = ZONGDAI
-    let status = role === ZONGDAI ? 2 : 1 // 总代状态为总代已审核，特代状态为未审核
+    let status = role === ZONGDAI ? 1 : 2 // 总代状态为总代已审核，特代状态为未审核
     //公司或总代主动添加
     if (this.user) {
-      status = role === ZONGDAI ? 1 : 0 // 添加总代直接通过，添加特代还需公司审核
+      status = role === ZONGDAI ? 0 : 1 // 添加总代直接通过，添加特代还需公司审核
     }
     // 查找当前申请是否申请过或者已驳回
     const findPreUser = await this.ctx.model.User.findOne({ telephone })
@@ -78,7 +78,7 @@ class UserService extends Service {
         return { id: user._id, username, telephone, avatarUrl, role }
       } catch (e) {
         console.log(e)
-        this.ctx.throw(200, '申请失败')
+        this.ctx.throw(200, e.message || '申请失败')
       }
     }
   }
@@ -98,7 +98,7 @@ class UserService extends Service {
       }
     } catch (e) {
       console.log(e)
-      this.ctx.throw('操作失败')
+      this.ctx.throw(200, e.message || '操作失败')
     }
   }
 
@@ -133,7 +133,6 @@ class UserService extends Service {
       if (curRole === ZONGDAI) {
         queryContidion = { status: type === 1 ? 3 : 2, boss: curUser.id }
       }
-      console.log(curUser, queryContidion)
       const data = await this.ctx.model.User.find(
         {...queryContidion},
         '_id username wx telephone idCard idCardDownUrl idCardUpUrl'
@@ -160,7 +159,6 @@ class UserService extends Service {
         { status: nextStatus },
         { new: true }
       )
-      console.log(checkUser)
       // 公司审核通过则添加到对应boss的member里
       if (type !== 1 && curRole === ADMIN) {
         const bossInfo = await this.ctx.model.User.findById(checkUser.boss)
@@ -172,7 +170,7 @@ class UserService extends Service {
       return id
     } catch (e) {
       console.log(e)
-      this.ctx.throw(200, '操作失败')
+      this.ctx.throw(200, e.message || '操作失败')
     }
   }
 }

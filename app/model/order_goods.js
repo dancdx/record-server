@@ -9,7 +9,7 @@ module.exports = app => {
     name: { type: String, default: '' },
     desc: { type: String, default: '' },
     price: { type: Number, default: 0 },
-    bprice: { type: Number, required: true },
+    bprice: { type: Number, default: 0 },
     zprice: { type: Number, default: 0 },
     tprice: { type: Number, default: 0 },
     lprice: { type: Number, default: 0 },

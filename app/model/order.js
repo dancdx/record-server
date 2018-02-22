@@ -7,6 +7,7 @@ module.exports = app => {
   const OrderSchema = new Schema({
     ownerBoss: { type: Schema.Types.ObjectId, ref: 'User' }, // 订单创建者的上级
     owner: { type: Schema.Types.ObjectId, ref: 'User' }, // 订单创建者
+    orderType: { type: Number }, // 订单类型：1 总代提交  2 特代提交
     orderId: { type: Number },
     user: {
       name: { type: String, required: true },
@@ -16,7 +17,8 @@ module.exports = app => {
     goods: [{ type: Schema.Types.ObjectId, ref: 'OrderGoods' }],
     status: { type: Number, default: 0 }, // 0:未审核(待处理)  1:总代已审核(已提交)  2:公司已审核(已提交) 3:已发货  4:总代驳回  5:公司驳回
     total: { type: Number }, // 总金额
-    btotal: { type: Number } // 总成本
+    btotal: { type: Number }, // 总成本
+    totalNum: { type: Number }
   }, {
     timestamps: true,
   })
