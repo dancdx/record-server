@@ -3,9 +3,15 @@
 const BaseController = require('./base')
 
 class StatisticController extends BaseController {
-  async index() {
+  async index () {
     const params = this.ctx.query
     const data = await this.service.statistic.index(params)
+    this.success(data)
+  }
+
+  async members () {
+    const params = this.ctx.query
+    const data = await this.service.statistic.members(params)
     this.success(data)
   }
 }

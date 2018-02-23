@@ -48,6 +48,7 @@ module.exports = app => {
   router.get('/order/:id', order.detail)
 
   router.get('/statistic', statistic.index)
+  router.get('/statistic/members', statistic.members)
 
   router.get('/wx', wx.index)
   router.get('/wx/token', wx.token)

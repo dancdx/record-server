@@ -16,7 +16,7 @@ class OrderService extends Service {
     try {
       const curRole = this.user.role
       const curUserId = this.user.id
-      const ownerBoss = this.user.boss
+      const ownerBoss = curRole === TEDAI ? this.user.boss : this.user.id // 特代就存他的上级，总代就存他自己
       const status = curRole === ZONGDAI ? 1 : 0
       const orderType = curRole === ZONGDAI ? 1 : 2 // 1总代提交 2特代提交
       const goodsInfo = await Promise.all(goods.map(async item => {
