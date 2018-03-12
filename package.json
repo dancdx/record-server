@@ -32,7 +32,8 @@
     "node": ">=8.9.0"
   },
   "scripts": {
-    "start": "egg-scripts start --daemon",
+    "start": "egg-scripts start --daemon --port=7001",
+    "start:test": "egg-scripts start --daemon --port=7002",
     "stop": "egg-scripts stop",
     "dev": "egg-bin dev",
     "debug": "egg-bin debug",

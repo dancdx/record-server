@@ -9,7 +9,7 @@ module.exports = appInfo => {
   // wx token
   config.token = 1515133826169
 
-  config.host = 'localhost:7001'
+  config.host = 'static.hanfeiguoyuan.top'
 
   config.security = {
     csrf: false
@@ -20,13 +20,24 @@ module.exports = appInfo => {
     'saveSession'
   ]
 
+  // mongoose
+  config.mongoose = {
+    // url: 'mongodb://127.0.0.1:27017/egg',
+    url: 'mongodb://hanfei:hanfei312@127.0.0.1:27017/hanfei',
+    options: {
+      useMongoClient: true,
+      // authSource: 'admin'
+    }
+  }
+
   //
   // config.multipart = {}
 
   config.cors = {
     // origin: '*',
-    origin: 'http://hanfei.frontjs.cc',
+    // origin: 'http://hanfei.frontjs.cc',
     // origin: 'http://localhost:7000',
+    origin: 'http://hanfeiguoyuan.top',
     allowMethods: 'GET,HEAD,PUT,POST,DELETE,PATCH',
     credentials: true
   }

@@ -17,7 +17,12 @@ module.exports = app => {
     num: { type: Number, default: 1 },
     skuId: { type: Number },
     total: { type: Number },
-    apply: { type: String } // 供应商
+    ztotal: { type: Number },
+    ttotal: { type: Number },
+    ltotal: { type: Number },
+    apply: { type: String }, // 供应商
+    driverNo: { type: String }, // 快递单号
+    driverType: { type: String }
   }, {
     timestamps: true,
   })

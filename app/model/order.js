@@ -15,8 +15,11 @@ module.exports = app => {
       address: { type: String, required: true }
     },
     goods: [{ type: Schema.Types.ObjectId, ref: 'OrderGoods' }],
-    status: { type: Number, default: 0 }, // 0:未审核(待处理)  1:总代已审核(已提交)  2:公司已审核(已提交) 3:已发货  4:总代驳回  5:公司驳回
+    status: { type: Number, default: 0 }, // 0:未审核(待处理)  1:总代已审核  2:公司已审核 3:已发货  4:总代驳回  5:公司驳回 6:取消
     total: { type: Number }, // 总金额
+    ltotal: { type: Number },
+    ztotal: { type: Number },
+    ttotal: { type: Number },
     btotal: { type: Number }, // 总成本
     totalNum: { type: Number }
   }, {

@@ -56,6 +56,13 @@ class OrderController extends BaseController {
     this.ctx.body = info
   }
 
+  // 快递单号录入
+  async driver () {
+    const params = this.ctx.request.body
+    await this.service.order.driver(params)
+    this.success()
+  }
+
 }
 
 module.exports = OrderController

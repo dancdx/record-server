@@ -24,6 +24,7 @@ class UserController extends BaseController {
     this.success()
   }
 
+  // 登陆
   async login() {
     const { username, password, remember = false } = this.ctx.request.body
     const userInfo = await this.service.user.login({ username, password, remember })
@@ -34,10 +35,26 @@ class UserController extends BaseController {
     this.success(userInfo)
   }
 
+  // 添加
   async add() {
     const params = this.ctx.request.body
     const userInfo = await this.service.user.add(params)
     // this.ctx.session.user = userInfo
+    this.success('success')
+  }
+
+  // 获取用户信息
+  async userinfo () {
+    const { code } = this.ctx.query
+    const userInfo = await this.service.user.userinfo(code)
+    this.success(userInfo)
+  }
+
+  // 授权
+  async auth () {
+    const { code } = this.ctx.query
+    const userInfo = await this.service.user.auth(code)
+    this.ctx.session.user_auth = userInfo
     this.success('success')
   }
 }

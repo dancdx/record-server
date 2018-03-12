@@ -3,6 +3,11 @@
 module.exports = appInfo => {
   const config = exports = {}
 
+  config.listen = {
+    port: 7001,
+    hostname: '127.0.0.1'
+  }
+
   // use for cookie sign key, should change to your own and keep security
   config.keys = appInfo.name + '_1515133826169_7511'
 
@@ -24,7 +29,10 @@ module.exports = appInfo => {
   // mongoose
   config.mongoose = {
     url: 'mongodb://127.0.0.1:27017/eggs',
-    options: {}
+    // options: {
+    //   useMongoClient: true,
+    //   // authSource: 'admin'
+    // }
   }
 
   // error config
@@ -62,6 +70,8 @@ module.exports = appInfo => {
   config.cors = {
     // origin: '*',
     origin: 'http://localhost:7000',
+    // origin: 'http://hanfeiguoyuan.top',
+    // origin: 'http://hanfei.ngrok.frontjs.cc',
     // origin: 'http://192.168.0.102:7000',
     allowMethods: 'GET,HEAD,PUT,POST,DELETE,PATCH',
     credentials: true
@@ -77,8 +87,14 @@ module.exports = appInfo => {
   // }
 
   config.wx = {
-    appid: 'appid',
-    secret: 'secret'
+    appid: 'wx6866af98c236fb7a',
+    secret: '939f9dcdf28912500d52da849cd34a50'
+  }
+
+  config.express = {
+    AppCode: '5a16a8611bd04fa78b06ec55fec920a9',
+    AppKey: '24807155',
+    AppSecret: 'f54a4b005119a1d46c68faaaaf7852ea'
   }
 
   return config

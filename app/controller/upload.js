@@ -36,7 +36,7 @@ class UploadController extends BaseController {
           await sendToWormhole(part)
           throw err
         }
-        const fileUrl = path.join(this.ctx.host, `public/static/${newFilename}`)
+        const fileUrl = path.join(this.config.host, `public/static/${newFilename}`)
         arr.push({
           filename: newFilename,
           path: newPath,

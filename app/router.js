@@ -24,6 +24,8 @@ module.exports = app => {
   router.post('/user/login', user.login)
   router.get('/user/checklist', user.listCheck) // 获取未审核用户列表
   router.get('/user/check', user.check) // 审核
+  router.get('/user/userinfo', user.userinfo) // 获取用户信息
+  router.get('/user/auth', user.auth) // 授权
 
   router.get('/category', category.index)
   router.post('/category/add', category.add)
@@ -46,6 +48,7 @@ module.exports = app => {
   router.get('/order/check', order.check)
   router.get('/order/download', order.download)
   router.get('/order/:id', order.detail)
+  router.post('/order/driver', order.driver)
 
   router.get('/statistic', statistic.index)
   router.get('/statistic/members', statistic.members)

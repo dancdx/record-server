@@ -18,7 +18,7 @@ class StatisticService extends Service {
         }
       }
       if (role === 1) {
-        return await this.admin(params)
+        return await this.admin(params, queryCondition)
       }
       let orderList = null
       if (role === 3 || role === 2) {
@@ -68,12 +68,12 @@ class StatisticService extends Service {
   }
 
   // 公司统计
-  async admin (params = {}) {
+  async admin (params = {}, queryCondition = {}) {
     // 获取所有总代
     const zUserInfo = await this.ctx.model.User.find({ role: 2, status: 0 }, 'username')
     const adminStatistic = await Promise.all(zUserInfo.map(async item => {
       let newItem = item.toObject()
-      const curStatistic = await this.ctx.model.Order.find({ ownerBoss: newItem._id }).populate('goods')
+      const curStatistic = await this.ctx.model.Order.find({ ownerBoss: newItem._id, ...queryCondition}).populate('goods')
       newItem.statistic = this.filterList(curStatistic, 2)
       return newItem
     }))
