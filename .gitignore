@@ -13,4 +13,4 @@ run/
 app/public/static/*
 !app/public/static/.gitkeep
 .vscode
-config
+config/
