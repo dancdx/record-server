@@ -35,6 +35,11 @@ module.exports = appInfo => {
     // }
   }
 
+  config.multipart = {
+    fileSize: '50mb',
+    fileExtensions: [ '.xlsx', '.xls' ], // 增加对 .apk 扩展名的支持
+  }
+
   // error config
   config.onerror = {
     all (err, ctx) {
@@ -70,9 +75,6 @@ module.exports = appInfo => {
   config.cors = {
     // origin: '*',
     origin: 'http://localhost:7000',
-    // origin: 'http://hanfeiguoyuan.top',
-    // origin: 'http://hanfei.ngrok.frontjs.cc',
-    // origin: 'http://192.168.0.102:7000',
     allowMethods: 'GET,HEAD,PUT,POST,DELETE,PATCH',
     credentials: true
   }
@@ -85,17 +87,6 @@ module.exports = appInfo => {
   //     db: 0
   //   },
   // }
-
-  config.wx = {
-    appid: 'wx6866af98c236fb7a',
-    secret: '939f9dcdf28912500d52da849cd34a50'
-  }
-
-  config.express = {
-    AppCode: '5a16a8611bd04fa78b06ec55fec920a9',
-    AppKey: '24807155',
-    AppSecret: 'f54a4b005119a1d46c68faaaaf7852ea'
-  }
 
   return config
 }

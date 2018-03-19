@@ -1,4 +1,6 @@
 const Service = require('./base')
+const { add, mul, sub } = require('../extend/math')
+const moment = require('moment')
 
 class StatisticService extends Service {
   // 当前代理的统计数据
@@ -6,15 +8,15 @@ class StatisticService extends Service {
     try {
       const { id, role } = this.user
       // 查询条件
-      const queryCondition = {}
+      const queryCondition = { status: { $lt: 4 } }
       const { startTime, endTime, userId } = params
       if (startTime || endTime) {
         queryCondition.createdAt = {}
         if (startTime) {
-          queryCondition.createdAt.$gte = new Date(startTime)
+          queryCondition.createdAt.$gte = this.ctx.helper.formatDate(startTime)
         }
         if (endTime) {
-          queryCondition.createdAt.$lte = new Date(endTime)
+          queryCondition.createdAt.$lte = this.ctx.helper.formatDate(endTime)
         }
       }
       if (role === 1) {
@@ -23,6 +25,8 @@ class StatisticService extends Service {
       let orderList = null
       if (role === 3 || role === 2) {
         queryCondition.owner = this.user.id
+        console.log(queryCondition)
+        console.log(Date.now(), new Date(Date.now()))
         orderList = await this.ctx.model.Order.find({...queryCondition}).populate('goods')
       }
       let type = role === 3 ? 0 : 3 // 特代 0 总代 3
@@ -40,15 +44,15 @@ class StatisticService extends Service {
       const { id, role } = this.user
       if (role !== 2) this.ctx.throw(200, '角色错误')
       // 查询条件
-      const queryCondition = {}
+      const queryCondition = { status: { $lt: 4 } }
       const { startTime, endTime, userId } = params
       if (startTime || endTime) {
         queryCondition.createdAt = {}
         if (startTime) {
-          queryCondition.createdAt.$gte = new Date(startTime)
+          queryCondition.createdAt.$gte = this.ctx.helper.formatDate(startTime)
         }
         if (endTime) {
-          queryCondition.createdAt.$lte = new Date(endTime)
+          queryCondition.createdAt.$lte = this.ctx.helper.formatDate(endTime)
         }
       }
       const curUserInfo = await this.ctx.model.User.findOne({_id: id}, 'members').populate({ path: 'members', select: '_id username' })
@@ -85,33 +89,36 @@ class StatisticService extends Service {
     const { id, role } = this.user
     const orderCount = list.length // 订单数量
     let total = 0 // 订单总金额
+    let ztotal = 0 // 订单总总代价
     let totalProfit = 0 // 总利润
     let goodsCount = 0 // 商品总数量
     const goods = {}
     list.map(item => {
-      total += item.total
+      total = add(total, item.total)
+      ztotal = add(ztotal, item.ztotal)
       item.goods.map(gitem => {
         goodsCount += gitem.num
         if (!goods[gitem.skuId]) {
-          goods[gitem.skuId] = { name: gitem.name, num: 0, total: 0 }
+          goods[gitem.skuId] = { name: gitem.name, num: 0, total: 0, ztotal: 0 }
         }
         goods[gitem.skuId].num += gitem.num
-        goods[gitem.skuId].total += gitem.total
+        goods[gitem.skuId].total = add(goods[gitem.skuId].total, gitem.total)
+        goods[gitem.skuId].ztotal = add(goods[gitem.skuId].ztotal, gitem.ztotal)
         // te
         if (type === 0) {
-          totalProfit = totalProfit + (gitem.lprice - gitem.tprice) * gitem.num
+          totalProfit = add(totalProfit, mul(sub(gitem.lprice, gitem.tprice), gitem.num))
         }
         // zong see te
         if (type === 1) {
-          totalProfit = totalProfit + (gitem.tprice - gitem.zprice) * gitem.num
+          totalProfit = add(totalProfit, mul(sub(gitem.tprice, gitem.zprice), gitem.num))
         }
         // admin
         if (type === 2) {
-          totalProfit = totalProfit + (gitem.zprice - gitem.bprice) * gitem.num
+          totalProfit = add(totalProfit, mul(sub(gitem.zprice, gitem.bprice), gitem.num))
         }
         // zong
         if (type === 3) {
-          totalProfit = totalProfit + (gitem.lprice - gitem.zprice) * gitem.num
+          totalProfit = add(totalProfit, mul(sub(gitem.lprice, gitem.zprice), gitem.num))
         }
       })
     })
@@ -119,7 +126,7 @@ class StatisticService extends Service {
     for (let key in goods) {
       goodsArr.push(goods[key])
     }
-    return { total, orderCount, goodsCount, totalProfit, goodsArr }
+    return { total, ztotal, orderCount, goodsCount, totalProfit, goodsArr }
   }
 }
 

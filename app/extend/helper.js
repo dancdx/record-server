@@ -1,8 +1,9 @@
 // 工具方法
-
+const moment = require('moment')
 module.exports = {
-  formatDate () {
-    return ''
+  formatDate (dateString) {
+    // return moment(dateString).format().split('+')[0] + 'Z'
+    return new Date(dateString)
   },
 
   merge (origin, newObj) {

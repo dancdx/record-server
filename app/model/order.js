@@ -21,7 +21,8 @@ module.exports = app => {
     ztotal: { type: Number },
     ttotal: { type: Number },
     btotal: { type: Number }, // 总成本
-    totalNum: { type: Number }
+    totalNum: { type: Number },
+    rmsg: { type: String, default: '' } // 驳回原因
   }, {
     timestamps: true,
   })

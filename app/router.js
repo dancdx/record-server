@@ -49,6 +49,7 @@ module.exports = app => {
   router.get('/order/download', order.download)
   router.get('/order/:id', order.detail)
   router.post('/order/driver', order.driver)
+  router.post('/order/import', order.importDriver)
 
   router.get('/statistic', statistic.index)
   router.get('/statistic/members', statistic.members)

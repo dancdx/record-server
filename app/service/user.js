@@ -21,7 +21,7 @@ class UserService extends Service {
     console.log('userinfo-data:===',data)
     const userInfo = await this.ctx.model.User.findOne({ openid: data.openid })
     console.log('userinfo----',userInfo)
-    if (!userInfo || userInfo.status !== 0) this.ctx.throw(200, '未授权用户|-3')
+    if (!userInfo || userInfo.status !== 0) this.ctx.throw(200, '未授权用户')
     const userInfoClone = userInfo.toObject()
     userInfoClone.id = userInfoClone._id
     const { telephone, avatarUrl, role, boss, username, _id, id } = userInfoClone
@@ -72,17 +72,20 @@ class UserService extends Service {
     if (bossRole === ADMIN) role = ZONGDAI
     let status = role === ZONGDAI ? 1 : 2 // 总代状态为总代已审核，特代状态为未审核
     //公司或总代主动添加
-    if (this.user) {
-      status = role === ZONGDAI ? 0 : 1 // 添加总代直接通过，添加特代还需公司审核
-    }
+    // if (this.user) {
+    //   status = role === ZONGDAI ? 0 : 1 // 添加总代直接通过，添加特代还需公司审核
+    // }
     // 查找当前申请是否申请过或者已驳回
     const findPreUser = await this.ctx.model.User.findOne({ openid })
     console.log(findPreUser)
     if (findPreUser) {
       const status = findPreUser.status
+      const originBoss = findPreUser.boss
       // 驳回状态则更新申请信息
       if (status === 3) {
         params._id = findPreUser._id
+        params.role = role
+        params.originBoss = originBoss
         this.updateAdd(params)
       } else {
         if (status === 0) {
@@ -125,8 +128,18 @@ class UserService extends Service {
   // 更新申请信息
   async updateAdd (params) {
     try {
-      const { _id, username, telephone, wx, idCard, idCardDownUrl, idCardUpUrl } = params
-      const updateParams = this.ctx.helper.merge({ status: 2 }, { username, telephone, wx, idCard, idCardDownUrl, idCardUpUrl })
+      const { _id, username, boss, originBoss, telephone, wx, idCard, idCardDownUrl, idCardUpUrl, role } = params
+      // 如果重新申请的总代跟之前不一致，则从原来的总代里把他删除
+      if (boss !== originBoss && originBoss) {
+        const originBossInfo = await this.ctx.model.User.findById(originBoss)
+        let originBossMembers = originBossInfo.members
+        if (originBossMembers && originBossMembers.indexOf(_id) >=0) {
+          originBossMembers.splice(index, 1)
+          originBossInfo.members = originBossMembers
+          await originBossInfo.save()
+        }
+      }
+      const updateParams = this.ctx.helper.merge({ status: 2 }, { username, boss, role, telephone, wx, idCard, idCardDownUrl, idCardUpUrl })
       const updateInfo = await this.ctx.model.User.findOneAndUpdate(
         { _id },
         {...updateParams},
@@ -190,10 +203,10 @@ class UserService extends Service {
       const curUser = this.user
       const curRole = this.user.role
       if (curRole === TEDAI) this.ctx.throw(200, '权限不足')
-      // let nextStatus = null
-      // if (curRole === ADMIN) nextStatus = (type && Number(type) === 1) ? 3 : 0
-      // if (curRole === ZONGDAI) nextStatus = (type && Number(type) === 1) ? 3 : 1
-      let nextStatus = (type && Number(type) === 1) ? 3 : 0 // 总代审核也直接通过
+      let nextStatus = null
+      if (curRole === ADMIN) nextStatus = (type && Number(type) === 1) ? 3 : 0
+      if (curRole === ZONGDAI) nextStatus = (type && Number(type) === 1) ? 3 : 1
+      // let nextStatus = (type && Number(type) === 1) ? 3 : 0 // 总代审核也直接通过
       const checkUser = await this.ctx.model.User.findOneAndUpdate(
         { _id: id },
         { status: nextStatus },
@@ -203,7 +216,9 @@ class UserService extends Service {
       if (type !== 1 && curRole === ADMIN) {
         const bossInfo = await this.ctx.model.User.findById(checkUser.boss)
         const newArr = bossInfo.members
-        newArr.push(checkUser._id)
+        if (newArr && newArr.indexOf(checkUser._id) < 0) {
+          newArr.push(checkUser._id)
+        }
         bossInfo.members = newArr
         await bossInfo.save()
       }
@@ -212,6 +227,19 @@ class UserService extends Service {
       console.log(e)
       this.ctx.throw(200, e.message || '操作失败')
     }
+  }
+
+  // 获取用户列表
+  async ztlist (params) {
+    const queryCondition = { role: params.type !== 2 ? 3 : 2, status: 0 }
+    if (params.key) {
+      if (this.ctx.helper.reg.telephone.test(key)) {
+        queryCondition.telephone = key
+      } else {
+        queryCondition.username = key
+      }
+    }
+    await this.ctx.model.User.find(queryCondition).populate('boss')
   }
 }
 

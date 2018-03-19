@@ -3,9 +3,10 @@ const xlsx = require('node-xlsx')
 const fs = require('fs')
 const { role } = require('../extend/constains')
 const { ADMIN, ZONGDAI, TEDAI } = role
+const { add, sub, mul } = require('../extend/math')
+const moment = require('moment')
 
 class OrderService extends Service {
-
   // 添加订单
   async add (params) {
     const { user, goods } = params
@@ -29,18 +30,18 @@ class OrderService extends Service {
         const curGoodsModel = await this.ctx.model.Goods.findById(item.id, 'skuId bprice lprice zprice tprice apply name image desc ' + priceType)
         const curGoodsInfo = curGoodsModel.toObject()
         curGoodsInfo.price = curGoodsInfo[priceType]
-        curGoodsInfo.total = curGoodsInfo.price * item.num
-        curGoodsInfo.btotal = curGoodsInfo.bprice * item.num // 成本
-        curGoodsInfo.ztotal = curGoodsInfo.zprice * item.num // 成本
-        curGoodsInfo.ttotal = curGoodsInfo.tprice * item.num // 成本
-        curGoodsInfo.ltotal = curGoodsInfo.lprice * item.num // 成本
+        curGoodsInfo.total = mul(curGoodsInfo.price, item.num)
+        curGoodsInfo.btotal = mul(curGoodsInfo.bprice, item.num) // 成本
+        curGoodsInfo.ztotal = mul(curGoodsInfo.zprice, item.num) // 成本
+        curGoodsInfo.ttotal = mul(curGoodsInfo.tprice, item.num) // 成本
+        curGoodsInfo.ltotal = mul(curGoodsInfo.lprice, item.num) // 成本
         curItem = Object.assign(curItem, curGoodsInfo)
         delete curItem._id
-        total += curGoodsInfo.total
-        btotal += curGoodsInfo.btotal
-        ztotal += curGoodsInfo.ztotal
-        ttotal += curGoodsInfo.ttotal
-        ltotal += curGoodsInfo.ltotal
+        total = add(total, curGoodsInfo.total)
+        btotal = add(btotal, curGoodsInfo.btotal)
+        ztotal = add(ztotal, curGoodsInfo.ztotal)
+        ttotal = add(ttotal, curGoodsInfo.ttotal)
+        ltotal = add(ltotal, curGoodsInfo.ltotal)
         totalNum += item.num
         return curItem
       }))
@@ -75,7 +76,7 @@ class OrderService extends Service {
 
   // 查询列表
   async list (params) {
-    let { pageSize = 100, page = 1, status, startTime, endTime, userId, sort = '-1', key, type } = params
+    let { pageSize = 200, page = 1, status, startTime, endTime, userId, sort = '-1', key, type } = params
     // 查询条件
     const queryCondition = {}
     const curUserId = this.user._id || this.user.id
@@ -88,13 +89,16 @@ class OrderService extends Service {
       }
     }
     if (status) queryCondition.status = status
+    if (Number(status) === 4 || Number(status) === 5) {
+      queryCondition.status = { $in: [ 4, 5 ] }
+    }
     if (startTime || endTime) {
       queryCondition.createdAt = {}
       if (startTime) {
-        queryCondition.createdAt.$gte = new Date(startTime)
+        queryCondition.createdAt.$gte = this.ctx.helper.formatDate(startTime)
       }
       if (endTime) {
-        queryCondition.createdAt.$lte = new Date(endTime)
+        queryCondition.createdAt.$lte = this.ctx.helper.formatDate(endTime)
       }
     }
     // 搜索关键字
@@ -107,7 +111,7 @@ class OrderService extends Service {
     }
     // 传userId，则查询对应下属的订单列表
     if (userId) queryCondition.owner = userId
-    // console.log(queryCondition)
+    console.log(queryCondition)
     try {
       const orders = await this.ctx.model.Order.find(
         {...queryCondition},
@@ -130,33 +134,61 @@ class OrderService extends Service {
   async download (params) {
     // 公司才有权限导出订单
     // if (this.user.role > 1) this.ctx.throw(200, '无权操作')
-    const { status, startTime, endTime } = params
-    const condition = {}
-    if (status) condition.status = status
+    const { status = 2, startTime, endTime } = params
+    const condition = { status: 2 }
+    // if (status) condition.status = status
     if (startTime || endTime) {
       condition.createdAt = {}
-      if (startTime) condition.createdAt.$gte = new Date(startTime)
-      if (endTime) condition.createdAt.$lte = new Date(endTime)
+      if (startTime) condition.createdAt.$gte = this.ctx.helper.formatDate(startTime)
+      if (endTime) condition.createdAt.$lte = this.ctx.helper.formatDate(endTime)
     }
     const orderData = await this.ctx.model.Order.find(
       {...condition},
-      'orderId user status createdAt gooods total btotal ztotal'
-    ).populate({ path: 'goods', select: 'name price bprice num zprice apply' }).populate('owner')
-    const xlsxData = [['订单号', '下单时间', '所属总代', '客户姓名', '客户电话', '收货地址', '商品名称', '数量', '总代价', '进价', '利润', '供应商']]
+      'orderId user status createdAt gooods total btotal ztotal ownerBoss'
+    ).sort({'createdAt': 1}).populate({ path: 'goods', select: 'name price bprice num zprice apply driverNo' }).populate('owner')
+    const xlsxData = []
+    if (startTime || endTime) {
+      let sms = startTime || '最早'
+      let ems = endTime || '至今'
+      xlsxData.push([`${sms} - ${ems} 订单统计表`])
+    } else {
+      xlsxData.push(['全部审核订单统计表'])
+    }
+    xlsxData.push([])
+    xlsxData.push(['所属总代', '订单号', '下单时间', '客户姓名', '客户电话', '收货地址', '商品名称', '数量', '规格', '供货价', '总代价', '利润', '订单状态', '订单商品ID(请勿修改)', '单号'])
+    let ztotal = 0
+    let btotal = 0
+    let totalProfit = 0
     await Promise.all(orderData.map(async item => {
-      const { orderId, user, createdAt, goods, total } = item
+      let { orderId, status, user, createdAt, goods, total } = item
       const { name: username, address, mobile } = user
       // 获取订单所属者名称，如果不是总代，则获取他的上级
-      let zName = item.owner.username
-      if (item.owner.role === 3) {
-        const bossInfo = await this.ctx.model.User.findById(item.owner.boss)
-        zName = bossInfo.username
+      let owner = item.owner
+      let zName = ''
+      if (owner) {
+        zName = owner.username
+        if (owner.role === 3 && owner.boss) {
+          const bossInfo = await this.ctx.model.User.findById(owner.boss)
+          zName = bossInfo ? bossInfo.username : ''
+        }
       }
+      // console.log(createdAt, moment(createdAt).utcOffset('+08:00').format('YYYY-MM-DD HH:mm:ss'))
+      let createdAtStr = moment(createdAt).utcOffset('+08:00').format('YYYY-MM-DD HH:mm:ss')
+      // console.log(createdAt, createdAtStr)
       goods.map(item => {
-        const lineData = [orderId, createdAt, zName, username, mobile, address, item.name, item.num, item.zprice, item.bprice, (item.zprice - item.bprice) * item.num, item.apply]
+        let curZprice = mul(item.zprice, item.num)
+        let curBprice = mul(item.bprice, item.num)
+        let curProfit = sub(curZprice, curBprice)
+        const lineData = [zName, orderId, createdAtStr, username, mobile, address, item.name, item.num, item.apply, curBprice, curZprice, curProfit, status, item._id, item.driverNo]
         xlsxData.push(lineData)
+        ztotal = add(ztotal, curZprice)
+        btotal = add(btotal, curBprice)
+        totalProfit = add(totalProfit, curProfit)
       })
     }))
+    xlsxData.push([])
+    xlsxData.push(['', '', '', '', '', '', '', '', '', '供货价总金额', '总代价总金额', '总利润'])
+    xlsxData.push(['', '', '', '', '', '', '', '', '', btotal, ztotal, totalProfit])
     const buffer = await xlsx.build([{ name: 'sheet1', data: xlsxData }])
     return buffer
   }
@@ -167,8 +199,8 @@ class OrderService extends Service {
     try {
       const detailInfo = await this.ctx.model.Order.find(
         { _id: id },
-        '_id orderId goods createAt status user total ztotal ttotal ltotal totalNum owner ownerBoss orderType'
-      ).populate({ path: 'goods', select: '_id image num total ttotal ztotal ltotal category zprice tprice lprice price name desc' })
+        '_id orderId goods createdAt status user total ztotal ttotal ltotal totalNum owner ownerBoss orderType rmsg'
+      ).populate({ path: 'goods', select: '_id image num total ttotal ztotal ltotal category zprice tprice lprice price name desc driverNo' })
       .populate({path: 'owner', select: 'username'})
       .populate({path: 'ownerBoss', select: 'username'})
       if (!detailInfo) this.ctx.throw(200, '非法ID')
@@ -221,33 +253,33 @@ class OrderService extends Service {
   }
 
   // 订单审核 orderType 0 通过 1:驳回 3:发货  -1:取消
-  async check (id, orderType, driver) {
+  async check ({ id, type, driver, rmsg }) {
+    const orderType = type
     if (!id) this.ctx.throw(200, '无效订单')
     const curRole = this.user.role
     // if (curRole > 2 && orderType !== 6) this.ctx.throw(200, '您无权审核')
+    // let newStatus = 2 // 默认一级审核
     let newStatus = 1 // 默认一级审核
     if (curRole === ADMIN) newStatus = 2 // 二级审核
-    if (curRole === ADMIN && driver === 1) newStatus = 3 // 发货
+    if (curRole === ADMIN && Number(orderType) === 3 && Number(driver) === 1) newStatus = 3 // 发货
     // 驳回情况
-    if (orderType === 1) {
+    if (Number(orderType) === 1) {
       if (curRole === ADMIN) {
         newStatus = 5 // 公司驳回
       } else {
         newStatus = 4 // 总代驳回
       }
     }
-    // 发货
-    if (orderType === 3 && curRole === ADMIN) {
-      newStatus = 3
-    }
     // 取消订单
-    if (orderType === 6) {
+    if (Number(orderType) === 6) {
       newStatus = 6
     }
     try {
+      let condition = { status: newStatus }
+      if (rmsg && (newStatus === 5 || newStatus === 4)) condition.rmsg = rmsg // 驳回原因
       await this.ctx.model.Order.findOneAndUpdate(
         { _id: id },
-        { status: newStatus },
+        {...condition},
         { new: true }
       )
       return true
@@ -274,6 +306,44 @@ class OrderService extends Service {
       console.log(e)
       this.ctx.throw(200, '操作失败')
     }
+  }
+
+  // 订单号导入
+  async importDriver () {
+    const uploadInfo = await this.service.upload.index(true)
+    if(!uploadInfo) this.ctx.throw(200, '文件上传失败')
+    const xlsxData = await xlsx.parse(uploadInfo[0].path)
+    if (!xlsxData || !xlsxData[0].data) this.ctx.throw(200, '文件解析失败')
+    const dataContent = xlsxData[0].data
+    await Promise.all(dataContent.map(async item => {
+      if (item && item.length > 0 && item[13] && !/订单/.test(item[13]) && item[14]) {
+        const id = item[13]
+        const driverNo = item[14]
+        const orderId = item[1]
+        console.log(id, driverNo, orderId)
+        // 更新单号
+        await this.ctx.model.OrderGoods.findOneAndUpdate(
+          { _id: id },
+          { driverNo },
+          { new: true }
+        )
+        const orderInfo = await this.ctx.model.Order.findOne({ orderId }).populate('goods')
+        let flag = true
+        orderInfo.goods.map(item => {
+          if (!item.driverNo) {
+            flag = false
+          }
+        })
+        // 更新订单状态为已发货
+        if (flag) {
+          await this.ctx.model.Order.findOneAndUpdate(
+            { orderId },
+            { status: 3 }
+          )
+        }
+      }
+    }))
+    return null
   }
 
   // 生成orderId

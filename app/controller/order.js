@@ -40,20 +40,26 @@ class OrderController extends BaseController {
 
   // 审核
   async check () {
-    const { id, type, driver } = this.ctx.query
-    await this.service.order.check(id, type, driver)
+    const { id, type, driver, rmsg } = this.ctx.query
+    await this.service.order.check({ id, type, driver, rmsg })
     this.success()
   }
 
   // 下载excel
   async download () {
-    const params = this.ctx.request.body
+    const params = this.ctx.query
     const info = await this.service.order.download(params)
     this.ctx.set({
       'Content-Type': 'application/octet-stream',
       'Content-Disposition': 'attachment; filename=order.xlsx'
     })
     this.ctx.body = info
+  }
+
+  // 导入快递单号
+  async importDriver () {
+    const data = await this.service.order.importDriver()
+    this.success()
   }
 
   // 快递单号录入

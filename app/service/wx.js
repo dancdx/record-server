@@ -17,7 +17,6 @@ class WxService extends Service {
     const oriArray = [ nonce, timestamp, token ]
     oriArray.sort()
     const scyptoString = this.sha1(oriArray.join(''))
-    console.log(scyptoString)
     if (signature === scyptoString) {
       return echostr
     }
